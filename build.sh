@@ -96,7 +96,7 @@ tg_error() {
 # Now let's clone gcc/clang on HOME dir
 # And after that , the script start the compilation of the kernel it self
 # For regen the defconfig . use the regen.sh script
-curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next/kernel/setup.sh" | bash -
+
 if [ "$TOOLCHAIN" == gcc ]; then
 	if [ ! -d "$HOME/gcc64" ] && [ ! -d "$HOME/gcc32" ]
 	then
@@ -111,7 +111,7 @@ elif [ "$TOOLCHAIN" == clang ]; then
 	if [ ! -d "$HOME/proton_clang" ]
 	then
 		echo -e "$green << cloning proton clang >> \n $white"
-		git clone --depth=1 https://gitlab.com/LeCmnGend/proton-clang -b clang-19 "$HOME"/proton_clang
+		git clone --depth=1 https://gitlab.com/kutemeikito/rastamod69-clang.git -b clang-20.0 "$HOME"/proton_clang
 	fi
 	export PATH="$HOME/proton_clang/bin:$PATH"
 	export STRIP="$HOME/proton_clang/aarch64-linux-gnu/bin/strip"
