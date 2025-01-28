@@ -96,7 +96,7 @@ tg_error() {
 # Now let's clone gcc/clang on HOME dir
 # And after that , the script start the compilation of the kernel it self
 # For regen the defconfig . use the regen.sh script
-
+curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -s v0.9.5
 if [ "$TOOLCHAIN" == gcc ]; then
 	if [ ! -d "$HOME/gcc64" ] && [ ! -d "$HOME/gcc32" ]
 	then
