@@ -52,15 +52,19 @@ if [[ ! -d "$MY_DIR" ]]; then MY_DIR="$PWD"; fi
 #
 # TOOLCHAIN = the toolchain u want to use "gcc/clang"
 
-BOT_TOKEN="7596553794:AAGoeg4VypmUfBqfUML5VWt5mjivN5-3ah8"
-CHAT_ID="1002287610863"
+CHATID="-1002287610863"
+API_BOT="7596553794:AAGoeg4VypmUfBqfUML5VWt5mjivN5-3ah8"
+
+
 DEVICE="Redmi Note 4/4X"
 CODENAME="mido"
-KERNEL_NAME="TeletubiesKernel"
+KERNEL_NAME="TeletubiesKernel A15"
+
 DEFCONFIG="teletubies_defconfig"
-CAPTION="Happy Compeling Kenel...."
+
 AnyKernel="https://github.com/malkist01/anykernel.git"
 AnyKernelbranch="master"
+
 HOSST="android-server"
 USEER="malkist"
 
@@ -122,7 +126,7 @@ if [ "$TOOLCHAIN" == clang  ]; then
 	make -j$(nproc --all) O=out \
         ARCH=arm64 \
         LLVM=1 \
-        LLVM_IAS=1 \
+        LLVM_IAS=0 \
         AR=llvm-ar \
         NM=llvm-nm \
         LD=ld.lld \
@@ -196,9 +200,9 @@ KERVER=$(make kernelversion)
                 mv Image.gz-dtb zImage
                 export ZIP="$KERNEL_NAME"-"$CODENAME"-"$DATE"
                 zip -r "$ZIP" *
-    URL="https://api.telegram.org/bot$BOT_TOKEN/sendDocument"
-
-    curl -s -X POST "$URL" -F document=@"$ZIPNAME" -F caption="$CAPTION" -F chat_id="$CHAT_ID"
+                curl -sLo zipsigner-3.0.jar https://raw.githubusercontent.com/Hunter-commits/AnyKernel/master/zipsigner-3.0.jar
+                java -jar zipsigner-3.0.jar "$ZIP".zip "$ZIP"-signed.zip		
+                tg_post_build "$ZIP"-signed.zip "$CHATID"
                 cd ..
                 rm -rf error.log
                 rm -rf out
