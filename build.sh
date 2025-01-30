@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright (C) 2020 Fox kernel project
+# Copyright (C) 2025 Teletubies kernel project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -52,21 +52,17 @@ if [[ ! -d "$MY_DIR" ]]; then MY_DIR="$PWD"; fi
 #
 # TOOLCHAIN = the toolchain u want to use "gcc/clang"
 
-CHATID="-1002287610863"
-API_BOT="7596553794:AAGoeg4VypmUfBqfUML5VWt5mjivN5-3ah8"
-
-
+BOT_TOKEN="7596553794:AAGoeg4VypmUfBqfUML5VWt5mjivN5-3ah8"
+CHAT_ID="1002287610863"
 DEVICE="Redmi Note 4/4X"
 CODENAME="mido"
 KERNEL_NAME="TeletubiesKernel"
-
 DEFCONFIG="teletubies_defconfig"
-
+CAPTION="Happy Compeling Kenel...."
 AnyKernel="https://github.com/malkist01/anykernel.git"
 AnyKernelbranch="master"
-
-HOSST="Build with love"
-USEER="Malkist"
+HOSST="android-server"
+USEER="malkist"
 
 TOOLCHAIN="clang"
 
@@ -106,7 +102,6 @@ if [ "$TOOLCHAIN" == gcc ]; then
 	fi
 	export PATH="$HOME/gcc64/bin:$HOME/gcc32/bin:$PATH"
 	export STRIP="$HOME/gcc64/aarch64-elf/bin/strip"
-	export KBUILD_COMPILER_STRING=$("$HOME"/gcc64/bin/aarch64-elf-gcc --version | head -n 1)
 elif [ "$TOOLCHAIN" == clang ]; then
 	if [ ! -d "$HOME/proton_clang" ]
 	then
@@ -115,7 +110,6 @@ elif [ "$TOOLCHAIN" == clang ]; then
 	fi
 	export PATH="$HOME/proton_clang/bin:$PATH"
 	export STRIP="$HOME/proton_clang/aarch64-linux-gnu/bin/strip"
-	export KBUILD_COMPILER_STRING=$("$HOME"/proton_clang/bin/clang --version | head -n 1 | perl -pe 's/\(http.*?\)//gs' | sed -e 's/  */ /g' -e 's/[[:space:]]*$//')
 fi
 
 # Setup build process
@@ -202,9 +196,9 @@ KERVER=$(make kernelversion)
                 mv Image.gz-dtb zImage
                 export ZIP="$KERNEL_NAME"-"$CODENAME"-"$DATE"
                 zip -r "$ZIP" *
-                curl -sLo zipsigner-3.0.jar https://raw.githubusercontent.com/Hunter-commits/AnyKernel/master/zipsigner-3.0.jar
-                java -jar zipsigner-3.0.jar "$ZIP".zip "$ZIP"-signed.zip		
-                tg_post_build "$ZIP"-signed.zip "$CHATID"
+    URL="https://api.telegram.org/bot$BOT_TOKEN/sendDocument"
+
+    curl -s -X POST "$URL" -F document=@"$ZIPNAME" -F caption="$CAPTION" -F chat_id="$CHAT_ID"
                 cd ..
                 rm -rf error.log
                 rm -rf out
