@@ -23,5 +23,5 @@ jobs:
              shell: bash
              env:
               CHATID: ${{ secrets.CHAT_ID }}
-              BOT_TOKEN: ${{ secrets.BOT_API }}
+              API_BOT: ${{ secrets.BOT_API }}
 
