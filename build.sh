@@ -1,10 +1,12 @@
-#!/usr/bin/env bash
+#!bin/bash
 echo "Cloning dependencies"
 git clone --depth=1 https://github.com/sohamxda7/llvm-stable  clang
 git clone https://github.com/sohamxda7/llvm-stable -b gcc64 --depth=1 gcc
 git clone https://github.com/sohamxda7/llvm-stable -b gcc32  --depth=1 gcc32
 git clone --depth=1 https://github.com/sohamxda7/AnyKernel3 AnyKernel
 echo "Done"
+CHATID="-1002287610863"
+API_BOT="7596553794:AAGoeg4VypmUfBqfUML5VWt5mjivN5-3ah8"
 IMAGE=$(pwd)/out/arch/arm64/boot/Image.gz-dtb
 TANGGAL=$(date +"%F-%S")
 START=$(date +"%s")
