@@ -107,13 +107,13 @@ if [ "$TOOLCHAIN" == gcc ]; then
 	export PATH="$HOME/gcc64/bin:$HOME/gcc32/bin:$PATH"
 	export STRIP="$HOME/gcc64/aarch64-elf/bin/strip"
 elif [ "$TOOLCHAIN" == clang ]; then
-	if [ ! -d "$HOME/proton_clang" ]
+	if [ ! -d "$HOME/clang" ]
 	then
-		echo -e "$green << cloning proton clang >> \n $white"
+		echo -e "$green << cloning clang >> \n $white"
 		git clone --depth=1 https://gitlab.com/rvproject27/RvClang.git -b main/21.x "$HOME"/proton_clang
 	fi
-	export PATH="$HOME/proton_clang/bin:$PATH"
-	export STRIP="$HOME/proton_clang/aarch64-linux-gnu/bin/strip"
+	export PATH="$HOME/clang/bin:$PATH"
+	export STRIP="$HOME/clang/aarch64-linux-gnu/bin/strip"
 fi
 
 # Setup build process
@@ -147,8 +147,8 @@ elif [ "$TOOLCHAIN" == gcc  ]; then
 	echo gcc
 	make -j$(nproc --all) O=out \
 			      ARCH=arm64 \
-			      CROSS_COMPILE=aarch64-elf- \
-			      CROSS_COMPILE_ARM32=arm-eabi- 2>&1 | tee error.log
+			      CROSS_COMPILE=aarch64-linux-gnu- \
+			      CROSS_COMPILE_ARM32=arm-linux-gnueabi- 2>&1 | tee error.log
 fi
 
 End=$(date +"%s")
