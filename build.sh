@@ -110,7 +110,7 @@ elif [ "$TOOLCHAIN" == clang ]; then
 	if [ ! -d "$HOME/clang" ]
 	then
 		echo -e "$green << cloning clang >> \n $white"
-		git clone --depth=1 https://gitlab.com/rvproject27/RvClang.git -b main/21.x "$HOME"/proton_clang
+		git clone --depth=1 https://gitlab.com/rvproject27/RvClang.git -b main/21.x "$HOME"/clang
 	fi
 	export PATH="$HOME/clang/bin:$PATH"
 	export STRIP="$HOME/clang/aarch64-linux-gnu/bin/strip"
