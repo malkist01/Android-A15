@@ -60,7 +60,7 @@ DEVICE="Redmi 4X"
 CODENAME="santoni"
 KERNEL_NAME="TeletubiesKernel"
 
-DEFCONFIG="santoni_defconfig"
+DEFCONFIG="teletubies_defconfig"
 
 AnyKernel="https://github.com/malkist01/anykernel.git"
 AnyKernelbranch="master"
@@ -111,7 +111,7 @@ elif [ "$TOOLCHAIN" == clang ]; then
 	if [ ! -d "$HOME/clang" ]
 	then
 		echo -e "$green << clang >> \n $white"
-		git clone --depth=1 https://gitlab.com/Panchajanya1999/azure-clang.git"$HOME"/clang
+		git clone --depth=1 https://gitlab.com/Panchajanya1999/azure-clang.git -b main"$HOME"/clang
 	fi
 	export PATH="$HOME/clang/bin:$PATH"
 	export STRIP="$HOME/clang/aarch64-linux-gnu/bin/strip"
