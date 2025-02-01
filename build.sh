@@ -347,7 +347,6 @@ gen_zip()
 {
 	msger -n "|| Zipping into a flashable zip ||"
 	mv "$KERNEL_DIR"/out/arch/arm64/boot/$FILES AnyKernel3/$FILES
-	then
 	cdir AnyKernel3
 	zip -r $ZIPNAME-$DEVICE-"$DATE" . -x ".git*" -x "README.md" -x "*.zip"
 
