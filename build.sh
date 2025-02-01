@@ -113,7 +113,7 @@ elif [ "$TOOLCHAIN" == clang ]; then
 	if [ ! -d "$HOME/clang" ]
 	then
 		echo -e "$green << clang >> \n $white"
-		git clone --depth=1 https://gitlab.com/Panchajanya1999/azure-clang.git clang"$HOME"/clang
+		git clone --depth=1 https://gitlab.com/Panchajanya1999/azure-clang.git"$HOME"/clang
 	fi
 	export PATH="$HOME/clang/bin:$PATH"
 	export STRIP="$HOME/clang/aarch64-linux-gnu/bin/strip"
