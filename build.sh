@@ -73,8 +73,6 @@ TOOLCHAIN="clang"
 # setup telegram env
 export BOT_BUILD_URL="https://api.telegram.org/bot$API_BOT/sendDocument"
 
-}
-
 tg_post_build() {
         #Post MD5Checksum alongwith for easeness
         MD5CHECK=$(md5sum "$1" | cut -d' ' -f1)
