@@ -751,5 +751,3 @@ if [ $LOG_DEBUG = "1" ]
 then
 	tg_post_build "error.log" "$CHATID" "Debug Mode Logs"
 fi
-
-##----------------*****------------
