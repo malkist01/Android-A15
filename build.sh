@@ -111,7 +111,7 @@ elif [ "$TOOLCHAIN" == clang ]; then
 	if [ ! -d "$HOME/proton_clang" ]
 	then
 		echo -e "$green << cloning proton clang >> \n $white"
-		git clone --depth=1 https://git.codelinaro.org/clo/la/platform/prebuilts/clang/host/linux-x86.git -b aosp-new/llvm-r547379"$HOME"/proton_clang
+		git clone --depth=1 https://git.codelinaro.org/clo/la/platform/prebuilts/clang/host/linux-x86.git "$HOME"/proton_clang
 	fi
 	export PATH="$HOME/proton_clang/bin:$PATH"
 	export STRIP="$HOME/proton_clang/aarch64-linux-gnu/bin/strip"
