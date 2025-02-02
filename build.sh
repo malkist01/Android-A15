@@ -110,7 +110,7 @@ elif [ "$TOOLCHAIN" == clang ]; then
 	if [ ! -d "$HOME/clang" ]
 	then
 		echo -e "$green << cloning clang >> \n $white"
-		git clone --depth=1 https://gitlab.com/PixelOS-Devices/neutron-clang.git -b main "$HOME"/clang
+		git clone --depth=1 https://gitlab.com/TheXPerienceProject/yuki_clang.git -b 18.0.0 "$HOME"/clang
 	fi
 	export PATH="$HOME/clang/bin:$PATH"
 	export STRIP="$HOME/clang/aarch64-linux-gnu/bin/strip"
