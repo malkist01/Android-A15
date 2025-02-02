@@ -106,7 +106,6 @@ if [ "$TOOLCHAIN" == gcc ]; then
 	fi
 	export PATH="$HOME/gcc64/bin:$HOME/gcc32/bin:$PATH"
 	export STRIP="$HOME/gcc64/aarch64-elf/bin/strip"
-	export KBUILD_COMPILER_STRING=$("$HOME"/gcc64/bin/aarch64-elf-gcc --version | head -n 1)
 elif [ "$TOOLCHAIN" == clang ]; then
 	if [ ! -d "$HOME/clang" ]
 	then
@@ -115,7 +114,6 @@ elif [ "$TOOLCHAIN" == clang ]; then
 	fi
 	export PATH="$HOME/clang/bin:$PATH"
 	export STRIP="$HOME/clang/aarch64-linux-gnu/bin/strip"
-	export KBUILD_COMPILER_STRING=$("$HOME"/clang/bin/clang --version | head -n 1 | perl -pe 's/\(http.*?\)//gs' | sed -e 's/  */ /g' -e 's/[[:space:]]*$//')
 fi
 
 # Setup build process
