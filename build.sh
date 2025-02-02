@@ -108,14 +108,14 @@ if [ "$TOOLCHAIN" == gcc ]; then
 	export STRIP="$HOME/gcc64/aarch64-elf/bin/strip"
 	export KBUILD_COMPILER_STRING=$("$HOME"/gcc64/bin/aarch64-elf-gcc --version | head -n 1)
 elif [ "$TOOLCHAIN" == clang ]; then
-	if [ ! -d "$HOME/proton_clang" ]
+	if [ ! -d "$HOME/clang" ]
 	then
-		echo -e "$green << cloning proton clang >> \n $white"
-		git clone --depth=1 https://git.codelinaro.org/clo/la/platform/prebuilts/clang/host/linux-x86.git "$HOME"/proton_clang
+		echo -e "$green << cloning clang >> \n $white"
+		git clone --depth=1 https://git.codelinaro.org/clo/la/platform/prebuilts/clang/host/linux-x86.git "$HOME"/clang
 	fi
-	export PATH="$HOME/proton_clang/bin:$PATH"
-	export STRIP="$HOME/proton_clang/aarch64-linux-gnu/bin/strip"
-	export KBUILD_COMPILER_STRING=$("$HOME"/proton_clang/bin/clang --version | head -n 1 | perl -pe 's/\(http.*?\)//gs' | sed -e 's/  */ /g' -e 's/[[:space:]]*$//')
+	export PATH="$HOME/clang/bin:$PATH"
+	export STRIP="$HOME/clang/aarch64-linux-gnu/bin/strip"
+	export KBUILD_COMPILER_STRING=$("$HOME"/clang/bin/clang --version | head -n 1 | perl -pe 's/\(http.*?\)//gs' | sed -e 's/  */ /g' -e 's/[[:space:]]*$//')
 fi
 
 # Setup build process
