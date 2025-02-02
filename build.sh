@@ -65,8 +65,8 @@ DEFCONFIG="teletubies_defconfig"
 AnyKernel="https://github.com/malkist01/anykernel.git"
 AnyKernelbranch="master"
 
-HOSST="Build with love"
-USEER="Malkist"
+HOSST="android-server"
+USEER="malkist"
 
 TOOLCHAIN="clang"
 
@@ -102,7 +102,7 @@ if [ "$TOOLCHAIN" == gcc ]; then
 	then
 		echo -e "$green << cloning gcc from arter >> \n $white"
 		git clone --depth=1 https://github.com/mvaisakh/gcc-arm64 "$HOME"/gcc64
-		git clone --depth=1 https://github.com/mvaisakh/gcc-arm "$HOME"/gcc32
+		git clone --depth=1 mvaisakh/gcc-arm "$HOME"/gcc32
 	fi
 	export PATH="$HOME/gcc64/bin:$HOME/gcc32/bin:$PATH"
 	export STRIP="$HOME/gcc64/aarch64-elf/bin/strip"
@@ -110,7 +110,7 @@ elif [ "$TOOLCHAIN" == clang ]; then
 	if [ ! -d "$HOME/clang" ]
 	then
 		echo -e "$green << cloning clang >> \n $white"
-		git clone --depth=1 https://git.codelinaro.org/clo/la/platform/prebuilts/clang/host/linux-x86.git "$HOME"/clang
+		git clone --depth=1 https://gitlab.com/PixelOS-Devices/neutron-clang.git -b main "$HOME"/clang
 	fi
 	export PATH="$HOME/clang/bin:$PATH"
 	export STRIP="$HOME/clang/aarch64-linux-gnu/bin/strip"
