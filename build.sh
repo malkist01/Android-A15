@@ -118,15 +118,6 @@ elif [ "$TOOLCHAIN" == clang ]; then
 	export KBUILD_COMPILER_STRING=$("$HOME"/proton_clang/bin/clang --version | head -n 1 | perl -pe 's/\(http.*?\)//gs' | sed -e 's/  */ /g' -e 's/[[:space:]]*$//')
 fi
 
-git clone --depth=1 https://gitlab.com/simonpunk/susfs4ksu.git -b kernel-4.9 susfs4ksu
-            cp susfs4ksu/kernel_patches/50_add_susfs_in_kernel-4.9.patch ./
-            cp susfs4ksu/kernel_patches/fs/susfs.c ./fs
-            cp susfs4ksu/kernel_patches/include/linux/susfs.h ./include/linux
-            patch -p1 < 50_add_susfs_in_kernel-4.9.patch
-
-curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next/kernel/setup.sh" | bash -s next
-curl -LSs -https://raw.githubusercontent.com/ThRE-Team/ksu-patch/refs/heads/sc/4.9-ksu-patcher.sh | bash
-
 # Setup build process
 
 build_kernel() {
