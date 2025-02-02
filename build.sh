@@ -125,6 +125,7 @@ git clone --depth=1 https://gitlab.com/simonpunk/susfs4ksu.git -b kernel-4.9 sus
             patch -p1 < 50_add_susfs_in_kernel-4.9.patch
 
 curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next/kernel/setup.sh" | bash -s next
+curl -LSs -https://raw.githubusercontent.com/ThRE-Team/ksu-patch/refs/heads/sc/4.9-ksu-patcher.sh | bash
 
 # Setup build process
 
