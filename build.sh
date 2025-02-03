@@ -9,6 +9,7 @@ CLANG="clang"
 CODENAME="[New]"
 ZIPNAME="Teletubies-$CODENAME-mido-$(date '+%Y%m%d-%H%M').zip"
 CAPTION="Just Happy Compiler"
+TOOLCHAIN="clang"
 
 export KBUILD_BUILD_USER=malkist
 export KBUILD_BUILD_HOST=android-server
@@ -52,10 +53,6 @@ function clean() {
     rm -rf out
     make mrproper
 }
-
-elif [ "$TOOLCHAIN" == clang ]; then
-	if [ ! -d "$HOME/clang" ]
-	then
 		echo -e "$green << cloning proton clang >> \n $white"
 		git clone --depth=1 https://gitlab.com/LeCmnGend/proton-clang -b clang-15 "$HOME"/clang
 	fi
