@@ -143,7 +143,6 @@ else
     curl -s -X POST "$URL" -F document=@"$ZIPNAME" -F caption="$CAPTION" -F chat_id="$CHAT_ID"
 
     fi
-
 # execute
 clean
 build_kernel
