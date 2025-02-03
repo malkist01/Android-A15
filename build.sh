@@ -4,7 +4,6 @@
 
 PHONE="mido"
 DEFCONFIG=teletubies_defconfig
-COMPILERDIR="/home/clang"
 CLANG="clang"
 CODENAME="[New]"
 ZIPNAME="Teletubies-$CODENAME-mido-$(date '+%Y%m%d-%H%M').zip"
@@ -56,13 +55,12 @@ function clean() {
 		echo -e "$green << cloning proton clang >> \n $white"
 		git clone --depth=1 https://gitlab.com/LeCmnGend/proton-clang -b clang-15 "$HOME"/clang
 	fi
-	export PATH="$HOME/clang/bin:$PATH"
-	export STRIP="$HOME/clang/aarch64-linux-gnu/bin/strip"
 
 # Make Defconfig
 
 function build_kernel() {
-    export PATH="$COMPILERDIR/bin:$PATH"
+	export PATH="$HOME/clang/bin:$PATH"
+	export STRIP="$HOME/clang/aarch64-linux-gnu/bin/strip"
     make -j$(nproc --all) O=out ARCH=arm64 ${DEFCONFIG}
     if [ $? -ne 0 ]
 then
