@@ -54,8 +54,7 @@ function clean() {
 }
 		echo -e "$green << cloning proton clang >> \n $white"
 		git clone --depth=1 https://gitlab.com/LeCmnGend/proton-clang -b clang-15 "$HOME"/clang
-	fi
-
+		
 # Make Defconfig
 
 function build_kernel() {
