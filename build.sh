@@ -54,13 +54,13 @@ function clean() {
 }
 
 elif [ "$TOOLCHAIN" == clang ]; then
-	if [ ! -d "$HOME/proton_clang" ]
+	if [ ! -d "$HOME/clang" ]
 	then
 		echo -e "$green << cloning proton clang >> \n $white"
-		git clone --depth=1 https://gitlab.com/LeCmnGend/proton-clang -b clang-15 "$HOME"/proton_clang
+		git clone --depth=1 https://gitlab.com/LeCmnGend/proton-clang -b clang-15 "$HOME"/clang
 	fi
-	export PATH="$HOME/proton_clang/bin:$PATH"
-	export STRIP="$HOME/proton_clang/aarch64-linux-gnu/bin/strip"
+	export PATH="$HOME/clang/bin:$PATH"
+	export STRIP="$HOME/clang/aarch64-linux-gnu/bin/strip"
 
 # Make Defconfig
 
@@ -74,7 +74,7 @@ then
     echo -e "\n"
 else
     echo -e "\n"
-    echo -e "$green==================================\033[0m"
+    echo -e "$green==============================\033[0m"
     echo -e "$green= [!] START BUILD ${DEFCONFIG}\033[0m"
     echo -e "$green==================================\033[0m"
     echo -e "\n"
@@ -108,12 +108,12 @@ fi
             echo -e "$green=============================================\033[0m"
     if [ -d "$AK3_DIR" ]; then
             cp -r $AK3_DIR AnyKernel3
-        elif ! git clone -q https://github.com/RapliVx/AnyKernel3.git -b vince; then
+        elif ! git clone -q https://github.com/malkist01/anykernel.git -b master; then
                 echo -e "\nAnyKernel3 repo not found locally and couldn't clone from GitHub! Aborting..."
         fi
             cp $KERN_IMG AnyKernel3
             cd AnyKernel3
-            git checkout vince &> /dev/null
+            git checkout master &> /dev/null
             zip -r9 "../$ZIPNAME" * -x .git README.md *placeholder
             cd ..
             rm -rf AnyKernel3
