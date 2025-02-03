@@ -75,7 +75,6 @@ else
     echo -e "$green= [!] START BUILD ${DEFCONFIG}\033[0m"
     echo -e "$green==================================\033[0m"
     echo -e "\n"
-fi
 
 # Build Start Here
 
