@@ -1,4 +1,4 @@
--#!/bin/bash
+#!/bin/bash
 #
 # Copyright (C) 2020 Fox kernel project
 #
@@ -97,16 +97,7 @@ tg_error() {
 # And after that , the script start the compilation of the kernel it self
 # For regen the defconfig . use the regen.sh script
 
-if [ "$TOOLCHAIN" == gcc ]; then
-	if [ ! -d "$HOME/gcc64" ] && [ ! -d "$HOME/gcc32" ]
-	then
-		echo -e "$green << cloning gcc from arter >> \n $white"
-		git clone --depth=1 -b lineage-19.1 https://github.com/LineageOS/android_prebuilts_gcc_linux-x86_aarch64_aarch64-linux-android-4.9.git  "$HOME"/gcc64
-		git clone --depth=1 -b lineage-19.1 https://github.com/LineageOS/android_prebuilts_gcc_linux-x86_arm_arm-linux-androideabi-4.9.git "$HOME"/gcc32
-	fi
-	export PATH="$HOME/gcc64/bin:$HOME/gcc32/bin:$PATH"
-	export STRIP="$HOME/gcc64/aarch64-linux-android/bin/strip"
-elif [ "$TOOLCHAIN" == clang ]; then
+if [ "$TOOLCHAIN" == clang ]; then
 	if [ ! -d "$HOME/rastamod69_clang" ]
 	then
 		echo -e "$green << cloning rastamod69 clang >> \n $white"
@@ -139,12 +130,6 @@ if [ "$TOOLCHAIN" == clang  ]; then
 	                      CROSS_COMPILE_ARM32=arm-linux-gnueabi- \
 	                      CONFIG_DEBUG_SECTION_MISMATCH=y \
 	                      CONFIG_NO_ERROR_ON_MISMATCH=y   2>&1 | tee error.log
-elif [ "$TOOLCHAIN" == gcc  ]; then
-	echo gcc
-	make -j$(nproc --all) O=out \
-			      ARCH=arm64 \
-			      CROSS_COMPILE=linux-android- \
-			      CROSS_COMPILE_ARM32=arm-linux-androideabi- 2>&1 | tee error.log
 fi
 
 End=$(date +"%s")
