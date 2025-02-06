@@ -14,7 +14,7 @@ rm -rf $(pwd)/out
 echo "Cleaning Completed."
 
 echo "Cloning dependencies"
-git clone --depth=1 https://gitlab.com/GhostMaster69-dev/Cosmic-Clang clang
+git clone --depth=1 -b clang-20.0 https://gitlab.com/kutemeikito/rastamod69-clang clang
 git clone --depth=1 https://github.com/malkist01/anykernel.git -b master AnyKernel
 echo "Done!"
 
