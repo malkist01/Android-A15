@@ -1,198 +1,141 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
-# Copyright (C) 2020 Fox kernel project
+# Copyright (C) 2025 Teletubies
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# Simple Local Kernel Build Script
 #
-#      http://www.apache.org/licenses/LICENSE-2.0
+# Configured for Redmi 4X / santoni custom kernel source
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# Setup build env with akhilnarang/scripts repo
 #
+# Use this script on root of kernel directory
 
-# Setup colour for the script
-yellow='\033[0;33m'
-white='\033[0m'
-red='\033[0;31m'
-green='\e[0;32m'
-
-# Deleting out "kernel complied" and zip "anykernel" from an old compilation
-echo -e "$green << cleanup >> \n $white"
-
-rm -rf out
-rm -rf zip
-rm -rf error.log
-
-echo -e "$green << setup dirs >> \n $white"
-
-# With that setup , the script will set dirs and few important thinks
-
-MY_DIR="${BASH_SOURCE%/*}"
-if [[ ! -d "$MY_DIR" ]]; then MY_DIR="$PWD"; fi
-
-# Now u can chose which things need to be modified
-# CHATID = chatid of a telegram group/channel
-# API_BOT = api bot of a telegram bot
-#
-# DEVICE = your device codename
-# KERNEL_NAME = the name of ur kranul
-#
-# DEFCONFIG = defconfig that will be used to compile the kernel
-#
-# AnyKernel = the url of your modified anykernel script
-# AnyKernelbranch = the branch of your modified anykernel script
-#
-# HOSST = build host
-# USEER = build user
-#
-# TOOLCHAIN = the toolchain u want to use "gcc/clang"
-
-CHAT_ID="-1002287610863"
-BOT_TOKEN="7596553794:AAGoeg4VypmUfBqfUML5VWt5mjivN5-3ah8"
-
-
-DEVICE="Redmi Note 4/4X"
-CODENAME="mido"
-KERNEL_NAME="TeletubiesKernel"
-
+SECONDS=0 # builtin bash timer
+LOCAL_DIR=/home/teletubies/
+ZIPNAME="Teletubies-santoni-$(TZ=Asia/Jakarta date +"%Y%m%d-%H%M").zip"
+ZIPNAME_KSU="Teletubies-KSU-$(TZ=Asia/Jakarta date +"%Y%m%d-%H%M").zip"
+TC_DIR="${LOCAL_DIR}toolchain"
+CLANG_DIR="${TC_DIR}/clang-rastamod"
+GCC_64_DIR="${LOCAL_DIR}toolchain/aarch64-linux-android-4.9"
+GCC_32_DIR="${LOCAL_DIR}toolchain/arm-linux-androideabi-4.9"
+AK3_DIR="${LOCAL_DIR}/Dynamic/AnyKernel3"
 DEFCONFIG="teletubies_defconfig"
 
-AnyKernel="https://github.com/malkist01/anykernel.git"
-AnyKernelbranch="master"
+export PATH="$CLANG_DIR/bin:$PATH"
+export KBUILD_BUILD_USER="malkist"
+export KBUILD_BUILD_HOST="android-server"
+export LD_LIBRARY_PATH="$CLANG_DIR/lib:$LD_LIBRARY_PATH"
+export KBUILD_BUILD_VERSION="1"
+export LOCALVERSION
 
-HOSST="android-server"
-USEER="malkist"
-
-TOOLCHAIN="clang"
-
-# Now let's clone gcc/clang on HOME dir
-# And after that , the script start the compilation of the kernel it self
-# For regen the defconfig . use the regen.sh script
-
-if [ "$TOOLCHAIN" == gcc ]; then
-	if [ ! -d "$HOME/gcc64" ] && [ ! -d "$HOME/gcc32" ]
-	then
-		echo -e "$green << cloning gcc from arter >> \n $white"
-		git clone --depth=1 https://github.com/mvaisakh/gcc-arm64 "$HOME"/gcc64
-		git clone --depth=1 https://github.com/mvaisakh/gcc-arm "$HOME"/gcc32
-	fi
-	export PATH="$HOME/gcc64/bin:$HOME/gcc32/bin:$PATH"
-	export STRIP="$HOME/gcc64/aarch64-elf/bin/strip"
-	export KBUILD_COMPILER_STRING=$("$HOME"/gcc64/bin/aarch64-elf-gcc --version | head -n 1)
-elif [ "$TOOLCHAIN" == clang ]; then
-	if [ ! -d "$HOME/proton_clang" ]
-	then
-		echo -e "$green << cloning proton clang >> \n $white"
-		git clone --depth=1 https://gitlab.com/kutemeikito/rastamod69-clang.git -b clang-20.0 "$HOME"/proton_clang
-	fi
-	export PATH="$HOME/proton_clang/bin:$PATH"
-	export STRIP="$HOME/proton_clang/aarch64-linux-gnu/bin/strip"
-	export KBUILD_COMPILER_STRING=$("$HOME"/proton_clang/bin/clang --version | head -n 1 | perl -pe 's/\(http.*?\)//gs' | sed -e 's/  */ /g' -e 's/[[:space:]]*$//')
+if ! [ -d "${CLANG_DIR}" ]; then
+echo "Clang not found! Cloning to ${TC_DIR}..."
+if ! git clone --depth=1 -b clang-20.0 https://gitlab.com/kutemeikito/rastamod69-clang ${CLANG_DIR}; then
+echo "Cloning failed! Aborting..."
+exit 1
+fi
 fi
 
-# Setup build process
-
-build_kernel() {
-Start=$(date +"%s")
-
-if [ "$TOOLCHAIN" == clang  ]; then
-	echo clang
-	make -j$(nproc --all) O=out \
-        ARCH=arm64 \
-        LLVM=1 \
-        LLVM_IAS=1 \
-        AR=llvm-ar \
-        NM=llvm-nm \
-        LD=ld.lld \
-        OBJCOPY=llvm-objcopy \
-        OBJDUMP=llvm-objdump \
-        STRIP=llvm-strip \
-        READELF=llvm-readelf \
-        HOSTCC=clang \
-        HOSTCXX=clang++ \
-        HOSTAR=llvm-ar \
-        HOSTLD=ld.lld \
-        CC="ccache clang" \
-	                      CROSS_COMPILE=aarch64-linux-gnu- \
-	                      CROSS_COMPILE_ARM32=arm-linux-gnueabi- \
-	                      CONFIG_DEBUG_SECTION_MISMATCH=y \
-	                      CONFIG_NO_ERROR_ON_MISMATCH=y   2>&1 | tee error.log
-elif [ "$TOOLCHAIN" == gcc  ]; then
-	echo gcc
-	make -j$(nproc --all) O=out \
-			      ARCH=arm64 \
-			      CROSS_COMPILE=aarch64-elf- \
-			      CROSS_COMPILE_ARM32=arm-eabi- 2>&1 | tee error.log
+if ! [ -d "${GCC_64_DIR}" ]; then
+echo "gcc not found! Cloning to ${GCC_64_DIR}..."
+if ! git clone --depth=1 -b lineage-19.1 https://github.com/LineageOS/android_prebuilts_gcc_linux-x86_aarch64_aarch64-linux-android-4.9.git ${GCC_64_DIR}; then
+echo "Cloning failed! Aborting..."
+exit 1
+fi
 fi
 
-End=$(date +"%s")
-Diff=$(($End - $Start))
-}
+if ! [ -d "${GCC_32_DIR}" ]; then
+echo "gcc_32 not found! Cloning to ${GCC_32_DIR}..."
+if ! git clone --depth=1 -b lineage-19.1 https://github.com/LineageOS/android_prebuilts_gcc_linux-x86_arm_arm-linux-androideabi-4.9.git ${GCC_32_DIR}; then
+echo "Cloning failed! Aborting..."
+exit 1
+fi
+fi
 
-export IMG="$MY_DIR"/out/arch/arm64/boot/Image.gz-dtb
+if [[ $1 = "-k" || $1 = "--ksu" ]]; then
+	echo -e "\nCleanup KernelSU first on local build\n"
+	rm -rf KernelSU drivers/kernelsu
+	git restore .
+else
+	echo -e "\nSet No KernelSU Install, just skip\n"
+fi
 
-# Let's start
-
-echo -e "$green << doing pre-compilation process >> \n $white"
-export ARCH=arm64
-export SUBARCH=arm64
-export HEADER_ARCH=arm64
-
-export KBUILD_BUILD_HOST="$HOSST"
-export KBUILD_BUILD_USER="$USEER"
+# Set function for override kernel name and variants
+if [[ $1 = "-k" || $1 = "--ksu" ]]; then
+echo -e "\nKSU Support, let's Make it On\n"
+curl -kLSs "https://raw.githubusercontent.com/kutemeikito/KernelSU-Next/next/kernel/setup.sh" | bash -s next
+git apply KernelSU-hook.patch
+sed -i 's/CONFIG_KSU=n/CONFIG_KSU=y/g' arch/arm64/configs/teletubies_defconfig
+sed -i 's/CONFIG_LOCALVERSION="~Teletubies"/CONFIG_LOCALVERSION="~Teletubies-KSU"/g' arch/arm64/configs/teletubies_defconfig
+else
+echo -e "\nKSU not Support, let's Skip\n"
+fi
 
 mkdir -p out
+make O=out ARCH=arm64 $DEFCONFIG
 
-make O=out clean && make O=out mrproper
-make "$DEFCONFIG" O=out
+echo -e "\nStarting compilation...\n"
+make -j$(nproc --all) O=out \
+					  ARCH=arm64 \
+					  CC=clang \
+					  LD=ld.lld \
+					  AR=llvm-ar \
+					  AS=llvm-as \
+					  NM=llvm-nm \
+					  OBJCOPY=llvm-objcopy \
+					  OBJDUMP=llvm-objdump \
+					  STRIP=llvm-strip \
+					  CROSS_COMPILE=aarch64-linux-android- \
+					  CROSS_COMPILE_COMPAT=arm-linux-gnueabi- \
+					  CLANG_TRIPLE=aarch64-linux-gnu- \
+					  Image.gz-dtb \
+					  dtbo.img
 
-echo -e "$yellow << compiling the kernel >> \n $white"
-tg_post_msg "<code>Building Image.gz-dtb</code>" "$CHATID"
-
-build_kernel || error=true
-
-DATE=$(date +"%Y%m%d-%H%M%S")
-KERVER=$(make kernelversion)
-
-        if [ -f "$IMG" ]; then
-                echo -e "$green << Build completed in $(($Diff / 60)) minutes and $(($Diff % 60)) seconds >> \n $white"
-        else
-                echo -e "$red << Failed to compile the kernel , Check up to find the error >>$white"
-                tg_error "error.log" "$CHATID"
-                rm -rf out
-                rm -rf testing.log
-                rm -rf error.log
-                exit 1
-        fi
-
-        if [ -f "$IMG" ]; then
-                echo -e "$green << cloning AnyKernel from your repo >> \n $white"
-                git clone "$AnyKernel" --single-branch -b "$AnyKernelbranch" zip
-                echo -e "$yellow << making kernel zip >> \n $white"
-                cp -r "$IMG" zip/
-                cd zip
-                mv Image.gz-dtb zImage
-                export ZIP="$KERNEL_NAME"-"$CODENAME"-"$DATE"
-                zip -r "$ZIP" *
-                curl -sLo zipsigner-3.0.jar https://raw.githubusercontent.com/Hunter-commits/AnyKernel/master/zipsigner-3.0.jar
-                java -jar zipsigner-3.0.jar "$ZIP".zip "$ZIP"-signed.zip	
-                	
-    # URL API Telegram untuk mengunggah file
+if [ -f "out/arch/arm64/boot/Image.gz-dtb" ] && [ -f "out/arch/arm64/boot/dtbo.img" ]; then
+echo -e "\nKernel compiled succesfully! Zipping up...\n"
+git restore arch/arm64/configs/teletubies_defconfig
+if [ -d "$AK3_DIR" ]; then
+cp -r $AK3_DIR AnyKernel3
+elif ! git clone -q -b master https://github.com/malkist01/anykernel.git; then
+echo -e "\nAnyKernel3 repo not found locally and cloning failed! Aborting..."
+exit 1
+fi
+cp out/arch/arm64/boot/Image.gz-dtb AnyKernel3
+cp out/arch/arm64/boot/dtbo.img AnyKernel3
+rm -f *zip
+cd AnyKernel3
+git checkout dynamic &> /dev/null
+if [[ $1 = "-k" || $1 = "--ksu" ]]; then
+zip -r9 "../$ZIPNAME_KSU" * -x '*.git*' README.md *placeholder
+else
+zip -r9 "../$ZIPNAME" * -x '*.git*' README.md *placeholder
+fi
+cd ..
+rm -rf AnyKernel3
+rm -rf out/arch/arm64/boot
+echo -e "======================================="
+echo -e "░█▀▀█ █──█ ▀▀█ █▀▀ █▀▀▄ "
+echo -e "░█▄▄▀ █▄▄█ ▄▀─ █▀▀ █──█ "
+echo -e "░█─░█ ▄▄▄█ ▀▀▀ ▀▀▀ ▀──▀ "
+echo -e " "
+echo -e "░█─▄▀ █▀▀ █▀▀█ █▀▀▄ █▀▀ █── "
+echo -e "░█▀▄─ █▀▀ █▄▄▀ █──█ █▀▀ █── "
+echo -e "░█─░█ ▀▀▀ ▀─▀▀ ▀──▀ ▀▀▀ ▀▀▀ "
+echo -e "======================================="
+echo -e "Completed in $((SECONDS / 60)) minute(s) and $((SECONDS % 60)) second(s) !"
+if [[ $1 = "-k" || $1 = "--ksu" ]]; then
+echo "Zip: $ZIPNAME_KSU"
+else
+echo "Zip: $ZIPNAME"
+fi
+else
+echo -e "\nCompilation failed!"
+exit 1
+fi
+echo "Move Zip into Home Directory"
+mv *.zip ${LOCAL_DIR}
+    BOT_TOKEN="7596553794:AAGoeg4VypmUfBqfUML5VWt5mjivN5-3ah8"
+    CHAT_ID="-1002287610863"
     URL="https://api.telegram.org/bot$BOT_TOKEN/sendDocument"
-
-    # Kirim file dengan keterangan
     curl -s -X POST "$URL" -F document=@"$ZIPNAME" -F caption="$CAPTION" -F chat_id="$CHAT_ID"
-    
-                cd ..
-                rm -rf error.log
-                rm -rf out
-                rm -rf zip
-                rm -rf testing.log
-                exit
-        fi
-    
+echo -e "======================================="
