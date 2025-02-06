@@ -1,133 +1,209 @@
-#!/usr/bin/env bash
+-#!/bin/bash
 #
-# Build Script for Biofrost Kramel
-# Copyright (C) 2022-2023 Mar Yvan D.
+# Copyright (C) 2020 Fox kernel project
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 #
 
-# MMDA Clearing Operation (anti re-send)
-echo "Clearing Environment"
-rm -rf $(pwd)/AnyKernel/*.zip
-echo "Nuking zImage in AK3 Folder"
-rm -rf $(pwd)/AnyKernel/zImage
-echo "Nuking out Folder"
-rm -rf $(pwd)/out
-echo "Cleaning Completed."
+# Setup colour for the script
+yellow='\033[0;33m'
+white='\033[0m'
+red='\033[0;31m'
+green='\e[0;32m'
 
-echo "Cloning dependencies"
-git clone --depth=1 https://gitlab.com/GhostMaster69-dev/Cosmic-Clang clang
-git clone --depth=1 https://github.com/malkist01/anykernel.git -b master AnyKernel
-echo "Done!"
+# Deleting out "kernel complied" and zip "anykernel" from an old compilation
+echo -e "$green << cleanup >> \n $white"
 
-# Default kernel directory.
-KERNEL_DIR=$(pwd)
+rm -rf out
+rm -rf zip
+rm -rf error.log
 
-# Main
-IMAGE=$(pwd)/out/arch/arm64/boot/zImage
-DATE=$(TZ=Asia/Jakarta date +"%Y%m%d-%s")
-START=$(date +"%s")
-PATH="${PWD}/clang/bin:$PATH"
-export ARCH=arm64
+echo -e "$green << setup dirs >> \n $white"
 
-# Default compiler directory.
-CLANG_ROOTDIR=$(pwd)/clang
+# With that setup , the script will set dirs and few important thinks
 
-# Builder/Host.
-export KBUILD_BUILD_USER="malkist"
-export KBUILD_BUILD_HOST=android-server
+MY_DIR="${BASH_SOURCE%/*}"
+if [[ ! -d "$MY_DIR" ]]; then MY_DIR="$PWD"; fi
 
-# Compiler + Linker information.
-CLANG="$(${CLANG_ROOTDIR}/bin/clang --version | head -n 1 | perl -pe 's/\(http.*?\)//gs' | sed -e 's/  */ /g')"
-LINKER_VERSION="$("${CLANG_ROOTDIR}"/bin/ld.bfd --version | head -n 1 | sed 's/(compatible with [^)]*)//' | head -n 1 | perl -pe 's/\(http.*?\)//gs' | sed -e 's/  */ /g' -e 's/[[:space:]]*$//')"
-export KBUILD_COMPILER_STRING="$($(pwd)/clang/bin/clang --version | head -n 1 | perl -pe 's/\(http.*?\)//gs' | sed -e 's/  */ /g' -e 's/[[:space:]]*$//')"
+# Now u can chose which things need to be modified
+# CHATID = chatid of a telegram group/channel
+# API_BOT = api bot of a telegram bot
+#
+# DEVICE = your device codename
+# KERNEL_NAME = the name of ur kranul
+#
+# DEFCONFIG = defconfig that will be used to compile the kernel
+#
+# AnyKernel = the url of your modified anykernel script
+# AnyKernelbranch = the branch of your modified anykernel script
+#
+# HOSST = build host
+# USEER = build user
+#
+# TOOLCHAIN = the toolchain u want to use "gcc/clang"
 
-# Device name.
-export DEVICE="Redmi note 4"
+CHATID="-1002287610863"
+API_BOT="7596553794:AAGoeg4VypmUfBqfUML5VWt5mjivN5-3ah8"
 
-# Device codename.
-export CODENAME="mido"
 
-# Top Commit Information (commit hash).
-COMMIT_HASH=$(git rev-parse --short HEAD)
-export COMMIT_HASH
+DEVICE="Redmi 4X"
+CODENAME="santoni"
+KERNEL_NAME="TeletubiesKernel"
 
-# Default device defconfig used.
-DEVICE_DEFCONFIG=teletubies_defconfig
+DEFCONFIG="teletubies_defconfig"
 
-# Build Status.
-BUILD_INFO=Experimental
+AnyKernel="https://github.com/malkist01/anykernel.git"
+AnyKernelbranch="master"
 
-# Telegram Information.
-bot_token="7596553794:AAGoeg4VypmUfBqfUML5VWt5mjivN5-3ah8"
+HOSST="android-server"
+USEER="malkist"
 
-# Where to push? Set 1 for Private Testing Group, 0 for Personal
-TESTING_GROUP=0
+TOOLCHAIN="gcc"
 
-if [ "${TESTING_GROUP}" = 1 ]; then
-    chat_id="-1002287610863"
-else
-    chat_id="-1002287610863"
-fi
+# setup telegram env
+export BOT_BUILD_URL="https://api.telegram.org/bot$API_BOT/sendDocument"
 
-# Post Main Information
-function sendinfo() {
-    curl -s -X POST "https://api.telegram.org/$bot_token/sendMessage" \
-        -d chat_id="$chat_id" \
-        -d "disable_web_page_preview=true" \
-        -d "parse_mode=html" \
-        -d text="<b> - Teletubies | Machine Build Triggered</b>%0A<b>Builder: </b><code>${KBUILD_BUILD_USER}</code>%0A<b>Date: </b><code>$(date)</code>%0A<b>Device: </b><code>${DEVICE} (${CODENAME})</code>%0A<b>Kernel Version: </b><code>$(make kernelversion 2>/dev/null)</code>%0A<b>Compiler: </b><code>${CLANG}</code>%0A<b>Linker: </b><code>${LINKER_VERSION}</code>%0A<b>Zip Name: </b><code>Biofrost-${CODENAME}-${DATE}</code>%0A<b>Build Status: </b><code>${BUILD_INFO}</code>%0A<b>Branch: </b><code>$(git rev-parse --abbrev-ref HEAD)</code><code>(master)</code>%0A<b>Top Commit: </b><a href='${REPO_URL}/commit/${COMMIT_HASH}'>${COMMIT_HASH}</a> <code>($(git log --pretty=format:'%s' -1))</code>"
-}   
-# Push Build to Channel
-function push() {
-    cd AnyKernel
-    ZIP=$(echo *.zip)
-    curl -F document=@$ZIP "https://api.telegram.org/$bot_token/sendDocument" \
-        -F chat_id="$chat_id" \
+tg_post_build() {
+        #Post MD5Checksum alongwith for easeness
+        MD5CHECK=$(md5sum "$1" | cut -d' ' -f1)
+
+        #Show the Checksum alongwith caption
+        curl --progress-bar -F document=@"$1" "$BOT_BUILD_URL" \
+        -F chat_id="$2" \
         -F "disable_web_page_preview=true" \
         -F "parse_mode=html" \
-        -F caption="Build took $(($DIFF / 60)) minute(s) and $(($DIFF % 60)) second(s). | <b>Compiled with: ${CLANG}+ ${LINKER_VERSION}.</b>"
+        -F caption="$3 build finished in $(($Diff / 60)) minutes and $(($Diff % 60)) seconds | <b>MD5 Checksum : </b><code>$MD5CHECK</code>"
 }
-# Error? Press F
-function finerr() {
-    curl -s -X POST "https://api.telegram.org/$bot_token/sendMessage" \
-        -d chat_id="$chat_id" \
-        -d "disable_web_page_preview=true" \
-        -d "parse_mode=html" \
-        -d text="Build throw an error, please check the logs."
-    exit 1
-}
-# Compile >.<
-function compile() {
-    make O=out ARCH=arm64 ${DEVICE_DEFCONFIG}
-    make -j$(nproc --all) O=out \
-              PATH=${KERNEL_DIR}/clang/bin:${PATH} \
-              ARCH=arm64 \
-			  CC=clang \
-              CLANG_TRIPLE=aarch64-linux-gnu- \
-			  CROSS_COMPILE=aarch64-linux-gnu- \
-			  CROSS_COMPILE_ARM32=arm-linux-gnueabi- 
-	          AR=llvm-ar \  
-	          AS=llvm-as \
-              NM=llvm-nm \
-              OBJCOPY=llvm-objcopy \
-	          OBJDUMP=llvm-objdump \
-              STRIP=llvm-strip \
 
-    if ! [ -a "$IMAGE" ]; then
-        finerr
-        exit 1
-    fi
-    cp out/arch/arm64/boot/Image.gz-dtb AnyKernel
+tg_error() {
+        curl --progress-bar -F document=@"$1" "$BOT_BUILD_URL" \
+        -F chat_id="$2" \
+        -F "disable_web_page_preview=true" \
+        -F "parse_mode=html" \
+        -F caption="$3Failed to build , check <code>error.log</code>"
+}
 
+# Now let's clone gcc/clang on HOME dir
+# And after that , the script start the compilation of the kernel it self
+# For regen the defconfig . use the regen.sh script
+
+if [ "$TOOLCHAIN" == gcc ]; then
+	if [ ! -d "$HOME/gcc64" ] && [ ! -d "$HOME/gcc32" ]
+	then
+		echo -e "$green << cloning gcc from arter >> \n $white"
+		git clone --depth=1 -b lineage-19.1 https://github.com/LineageOS/android_prebuilts_gcc_linux-x86_aarch64_aarch64-linux-android-4.9.git  "$HOME"/gcc64
+		git clone --depth=1 -b lineage-19.1 https://github.com/LineageOS/android_prebuilts_gcc_linux-x86_arm_arm-linux-androideabi-4.9.git "$HOME"/gcc32
+	fi
+	export PATH="$HOME/gcc64/bin:$HOME/gcc32/bin:$PATH"
+	export STRIP="$HOME/gcc64/aarch64-linux-android/bin/strip"
+elif [ "$TOOLCHAIN" == clang ]; then
+	if [ ! -d "$HOME/rastamod69_clang" ]
+	then
+		echo -e "$green << cloning rastamod69 clang >> \n $white"
+		git clone --depth=1 https://gitlab.com/kutemeikito/rastamod69-clang.git -b clang-20.0 "$HOME"/rastamod69_clang
+	fi
+	export PATH="$HOME/rastamod69_clang/bin:$PATH"
+	export STRIP="$HOME/rastamod69_clang/aarch64-linux-gnu/bin/strip"
+fi
+
+# Setup build process
+
+build_kernel() {
+Start=$(date +"%s")
+
+if [ "$TOOLCHAIN" == clang  ]; then
+	echo clang
+	make -j$(nproc --all) O=out \
+                      ARCH=arm64 \
+                      LLVM=1 \
+                      LLVM_IAS=1 \
+					  CC=clang \
+					  LD=ld.lld \
+					  AR=llvm-ar \
+					  AS=llvm-as \
+					  NM=llvm-nm \
+					  OBJCOPY=llvm-objcopy \
+					  OBJDUMP=llvm-objdump \
+					  STRIP=llvm-strip \
+	                      CROSS_COMPILE=aarch64-linux-gnu- \
+	                      CROSS_COMPILE_ARM32=arm-linux-gnueabi- \
+	                      CONFIG_DEBUG_SECTION_MISMATCH=y \
+	                      CONFIG_NO_ERROR_ON_MISMATCH=y   2>&1 | tee error.log
+elif [ "$TOOLCHAIN" == gcc  ]; then
+	echo gcc
+	make -j$(nproc --all) O=out \
+			      ARCH=arm64 \
+			      CROSS_COMPILE=linux-android- \
+			      CROSS_COMPILE_ARM32=arm-linux-androideabi- 2>&1 | tee error.log
+fi
+
+End=$(date +"%s")
+Diff=$(($End - $Start))
 }
-# Zipping
-function zipping() {
-    cd AnyKernel || exit 1
-    zip -r9 Teletubies-${CODENAME}-${DATE}.zip *
-    cd ..
-}
-sendinfo
-compile
-zipping
-END=$(date +"%s")
-DIFF=$(($END - $START))
-push
+
+export IMG="$MY_DIR"/out/arch/arm64/boot/Image.gz-dtb
+
+# Let's start
+
+echo -e "$green << doing pre-compilation process >> \n $white"
+export ARCH=arm64
+export SUBARCH=arm64
+export HEADER_ARCH=arm64
+
+export KBUILD_BUILD_HOST="$HOSST"
+export KBUILD_BUILD_USER="$USEER"
+
+mkdir -p out
+
+make O=out clean && make O=out mrproper
+make "$DEFCONFIG" O=out
+
+echo -e "$yellow << compiling the kernel >> \n $white"
+tg_post_msg "<code>Building Image.gz-dtb</code>" "$CHATID"
+
+build_kernel || error=true
+
+DATE=$(date +"%Y%m%d-%H%M%S")
+KERVER=$(make kernelversion)
+
+        if [ -f "$IMG" ]; then
+                echo -e "$green << Build completed in $(($Diff / 60)) minutes and $(($Diff % 60)) seconds >> \n $white"
+        else
+                echo -e "$red << Failed to compile the kernel , Check up to find the error >>$white"
+                tg_error "error.log" "$CHATID"
+                rm -rf out
+                rm -rf testing.log
+                rm -rf error.log
+                exit 1
+        fi
+
+        if [ -f "$IMG" ]; then
+                echo -e "$green << cloning AnyKernel from your repo >> \n $white"
+                git clone "$AnyKernel" --single-branch -b "$AnyKernelbranch" zip
+                echo -e "$yellow << making kernel zip >> \n $white"
+                cp -r "$IMG" zip/
+                cd zip
+                mv Image.gz-dtb zImage
+                export ZIP="$KERNEL_NAME"-"$CODENAME"-"$DATE"
+                zip -r "$ZIP" *
+                curl -sLo zipsigner-3.0.jar https://github.com/malkist01/anykernel.git/master/zipsigner-3.0.jar
+                java -jar zipsigner-3.0.jar "$ZIP".zip "$ZIP"-signed.zip		
+                tg_post_build "$ZIP"-signed.zip "$CHATID"
+                cd ..
+                rm -rf error.log
+                rm -rf out
+                rm -rf zip
+                rm -rf testing.log
+                exit
+        fi
+    
