@@ -107,13 +107,13 @@ if [ "$TOOLCHAIN" == gcc ]; then
 	export PATH="$HOME/gcc64/bin:$HOME/gcc32/bin:$PATH"
 	export STRIP="$HOME/gcc64/aarch64-elf/bin/strip"
 elif [ "$TOOLCHAIN" == clang ]; then
-	if [ ! -d "$HOME/yuki-clang" ]
+	if [ ! -d "$HOME/clang" ]
 	then
-		echo -e "$green << cloning yuki clang >> \n $white"
-		git clone --depth=1 https://gitlab.com/TheXPerienceProject/yuki_clang.git -b 18.0.0 "$HOME"/yuki-clang
+		echo -e "$green << cloning clang >> \n $white"
+		git clone --depth=1 https://gitlab.com/LeCmnGend/proton-clang -b clang-19 "$HOME"/clang
 	fi
-	export PATH="$HOME/yuki-clang/bin:$PATH"
-	export STRIP="$HOME/yuki-clang/aarch64-linux-gnu/bin/strip"
+	export PATH="$HOME/clang/bin:$PATH"
+	export STRIP="$HOME/clang/aarch64-linux-gnu/bin/strip"
 fi
 
 # Setup build process
