@@ -107,13 +107,13 @@ if [ "$TOOLCHAIN" == gcc ]; then
 	export PATH="$HOME/gcc64/bin:$HOME/gcc32/bin:$PATH"
 	export STRIP="$HOME/gcc64/aarch64-elf/bin/strip"
 elif [ "$TOOLCHAIN" == clang ]; then
-	if [ ! -d "$HOME/proton_clang" ]
+	if [ ! -d "$HOME/yuki-clang" ]
 	then
-		echo -e "$green << cloning proton clang >> \n $white"
-		git clone --depth=1 https://gitlab.com/kutemeikito/rastamod69-clang.git -b clang-20.0 "$HOME"/proton_clang
+		echo -e "$green << cloning yuki clang >> \n $white"
+		git clone --depth=1 https://gitlab.com/TheXPerienceProject/yuki_clang.git -b 18.0.0 "$HOME"/yuki-clang
 	fi
-	export PATH="$HOME/proton_clang/bin:$PATH"
-	export STRIP="$HOME/proton_clang/aarch64-linux-gnu/bin/strip"
+	export PATH="$HOME/yuki-clang/bin:$PATH"
+	export STRIP="$HOME/yuki-clang/aarch64-linux-gnu/bin/strip"
 fi
 
 # Setup build process
@@ -125,21 +125,12 @@ if [ "$TOOLCHAIN" == clang  ]; then
 	echo clang
 	make -j$(nproc --all) O=out \
         ARCH=arm64 \
-        LLVM=1 \
-        LLVM_IAS=1 \
         AR=llvm-ar \
         NM=llvm-nm \
         LD=ld.lld \
-        OBJCOPY=llvm-objcopy \
-        OBJDUMP=llvm-objdump \
-        STRIP=llvm-strip \
-        READELF=llvm-readelf \
-        HOSTCC=clang \
-        HOSTCXX=clang++ \
-        HOSTAR=llvm-ar \
-        HOSTLD=ld.lld \
         CC="ccache clang" \
-	                      CROSS_COMPILE=aarch64-linux-gnu- \
+	                      CLANG_TRIPLE=aarch64-linux-gnu- \
+		              CROSS_COMPILE=aarch64-linux-gnu- \
 	                      CROSS_COMPILE_ARM32=arm-linux-gnueabi- \
 	                      CONFIG_DEBUG_SECTION_MISMATCH=y \
 	                      CONFIG_NO_ERROR_ON_MISMATCH=y   2>&1 | tee error.log
