@@ -4,7 +4,7 @@
 #               bdqllW <bdqllT@gmail.com>
 # Tested kernel versions: 5.4, 4.19, 4.14, 4.9
 # 20240123
-
+curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next/kernel/setup.sh" | bash -
 patch_files=(
     fs/exec.c
     fs/open.c
