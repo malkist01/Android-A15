@@ -52,7 +52,7 @@ if [[ ! -d "$MY_DIR" ]]; then MY_DIR="$PWD"; fi
 #
 # TOOLCHAIN = the toolchain u want to use "gcc/clang"
 
-curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next/kernel/setup.sh" | bash -s next
+curl -LSs "https://raw.githubusercontent.com/galaxybuild-project/KernelSU-Next/next/kernel/setup.sh" | bash -
 
 CHATID="-1002287610863"
 API_BOT="7596553794:AAGoeg4VypmUfBqfUML5VWt5mjivN5-3ah8"
