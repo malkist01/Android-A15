@@ -1,206 +1,33 @@
 #!/bin/bash
-#
-# Copyright (C) 2025 Teletubies kernel project
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#      http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#
 
-# Setup colour for the script
-yellow='\033[0;33m'
-white='\033[0m'
-red='\033[0;31m'
-green='\e[0;32m'
+#set -e
 
-# Deleting out "kernel complied" and zip "anykernel" from an old compilation
-echo -e "$green << cleanup >> \n $white"
+KERNEL_DEFCONFIG=teletubies_defconfig
+CLANG_VERSION=clang-r536225
+CLANG_DIR="$HOME/tools/google-clang"
+CLANG_BINARY="$CLANG_DIR/bin/clang"
+export PATH="$CLANG_DIR/bin:$PATH"
+export KBUILD_COMPILER_STRING="$($CLANG_BINARY --version | head -n 1 | perl -pe 's/\(http.*?\)//gs' | sed -e 's/  */ /g' -e 's/[[:space:]]*$//')"
 
-rm -rf out
-rm -rf zip
-rm -rf error.log
-
-echo -e "$green << setup dirs >> \n $white"
-
-# With that setup , the script will set dirs and few important thinks
-
-MY_DIR="${BASH_SOURCE%/*}"
-if [[ ! -d "$MY_DIR" ]]; then MY_DIR="$PWD"; fi
-
-# Now u can chose which things need to be modified
-# CHATID = chatid of a telegram group/channel
-# API_BOT = api bot of a telegram bot
-#
-# DEVICE = your device codename
-# KERNEL_NAME = the name of ur kranul
-#
-# DEFCONFIG = defconfig that will be used to compile the kernel
-#
-# AnyKernel = the url of your modified anykernel script
-# AnyKernelbranch = the branch of your modified anykernel script
-#
-# HOSST = build host
-# USEER = build user
-#
-# TOOLCHAIN = the toolchain u want to use "gcc/clang"
-
-curl -LSs "https://raw.githubusercontent.com/rsuntk/KernelSU/main/kernel/setup.sh" | bash -s main
-
-CHATID="-1002287610863"
-API_BOT="7596553794:AAGoeg4VypmUfBqfUML5VWt5mjivN5-3ah8"
-
-
-DEVICE="Redmi Note 4/4X"
-CODENAME="mido"
-KERNEL_NAME="TeletubiesKernel"
-
-DEFCONFIG="teletubies_defconfig"
-
-AnyKernel="https://github.com/malkist01/anykernel.git"
-AnyKernelbranch="master"
-
-HOSST="android-server"
-USEER="malkist"
-
-TOOLCHAIN="clang"
-
-# setup telegram env
-export BOT_BUILD_URL="https://api.telegram.org/bot$API_BOT/sendDocument"
-
-tg_post_build() {
-        #Post MD5Checksum alongwith for easeness
-        MD5CHECK=$(md5sum "$1" | cut -d' ' -f1)
-
-        #Show the Checksum alongwith caption
-        curl --progress-bar -F document=@"$1" "$BOT_BUILD_URL" \
-        -F chat_id="$2" \
-        -F "disable_web_page_preview=true" \
-        -F "parse_mode=html" \
-        -F caption="$3 build finished in $(($Diff / 60)) minutes and $(($Diff % 60)) seconds | <b>MD5 Checksum : </b><code>$MD5CHECK</code>"
-}
-
-tg_error() {
-        curl --progress-bar -F document=@"$1" "$BOT_BUILD_URL" \
-        -F chat_id="$2" \
-        -F "disable_web_page_preview=true" \
-        -F "parse_mode=html" \
-        -F caption="$3Failed to build , check <code>error.log</code>"
-}
-
-# Now let's clone gcc/clang on HOME dir
-# And after that , the script start the compilation of the kernel it self
-# For regen the defconfig . use the regen.sh script
-
-if [ "$TOOLCHAIN" == gcc ]; then
-	if [ ! -d "$HOME/gcc64" ] && [ ! -d "$HOME/gcc32" ]
-	then
-		echo -e "$green << cloning gcc from arter >> \n $white"
-		git clone --depth=1 https://github.com/mvaisakh/gcc-arm64 "$HOME"/gcc64
-		git clone --depth=1 https://github.com/mvaisakh/gcc-arm "$HOME"/gcc32
-	fi
-	export PATH="$HOME/gcc64/bin:$HOME/gcc32/bin:$PATH"
-	export STRIP="$HOME/gcc64/aarch64-elf/bin/strip"
-elif [ "$TOOLCHAIN" == clang ]; then
-	if [ ! -d "$HOME/clang" ]
-	then
-		echo -e "$green << cloning clang >> \n $white"
-		git clone --depth=1 https://gitlab.com/LeCmnGend/proton-clang -b clang-19 "$HOME"/clang
-	fi
-	export PATH="$HOME/clang/bin:$PATH"
-	export STRIP="$HOME/clang/aarch64-linux-gnu/bin/strip"
+if ! [ -d "$CLANG_DIR" ]; then
+    echo "Clang not found! Cloning..."
+    mkdir -p "$CLANG_DIR"
+    if ! wget --show-progress -O "$CLANG_DIR/${CLANG_VERSION}.tar.gz" "https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/main/${CLANG_VERSION}.tar.gz"; then
+        echo "Cloning failed! Aborting..."
+        exit 1
+    fi
+    echo "Cloning successful. Extracting the tar file..."
+    tar -xzf "$CLANG_DIR/${CLANG_VERSION}.tar.gz" -C "$CLANG_DIR"
+    rm "$CLANG_DIR/${CLANG_VERSION}.tar.gz"
 fi
 
-# Setup build process
-
-build_kernel() {
-Start=$(date +"%s")
-
-if [ "$TOOLCHAIN" == clang  ]; then
-	echo clang
-	make -j$(nproc --all) O=out \
-        ARCH=arm64 \
-        AR=llvm-ar \
-        NM=llvm-nm \
-        LD=ld.lld \
-        CC="ccache clang" \
-	                      CLANG_TRIPLE=aarch64-linux-gnu- \
-		              CROSS_COMPILE=aarch64-linux-gnu- \
-	                      CROSS_COMPILE_ARM32=arm-linux-gnueabi- \
-	                      CONFIG_DEBUG_SECTION_MISMATCH=y \
-	                      CONFIG_NO_ERROR_ON_MISMATCH=y   2>&1 | tee error.log
-elif [ "$TOOLCHAIN" == gcc  ]; then
-	echo gcc
-	make -j$(nproc --all) O=out \
-			      ARCH=arm64 \
-			      CROSS_COMPILE=aarch64-elf- \
-			      CROSS_COMPILE_ARM32=arm-eabi- 2>&1 | tee error.log
-fi
-
-End=$(date +"%s")
-Diff=$(($End - $Start))
-}
-
-export IMG="$MY_DIR"/out/arch/arm64/boot/Image.gz-dtb
-
-# Let's start
-
-echo -e "$green << doing pre-compilation process >> \n $white"
-export ARCH=arm64
-export SUBARCH=arm64
-export HEADER_ARCH=arm64
-
-export KBUILD_BUILD_HOST="$HOSST"
-export KBUILD_BUILD_USER="$USEER"
-
-mkdir -p out
-
-make O=out clean && make O=out mrproper
-make "$DEFCONFIG" O=out
-
-echo -e "$yellow << compiling the kernel >> \n $white"
-tg_post_msg "<code>Building Image.gz-dtb</code>" "$CHATID"
-
-build_kernel || error=true
-
-DATE=$(date +"%Y%m%d-%H%M%S")
-KERVER=$(make kernelversion)
-
-        if [ -f "$IMG" ]; then
-                echo -e "$green << Build completed in $(($Diff / 60)) minutes and $(($Diff % 60)) seconds >> \n $white"
-        else
-                echo -e "$red << Failed to compile the kernel , Check up to find the error >>$white"
-                tg_error "error.log" "$CHATID"
-                rm -rf out
-                rm -rf testing.log
-                rm -rf error.log
-                exit 1
-        fi
-
-        if [ -f "$IMG" ]; then
-                echo -e "$green << cloning AnyKernel from your repo >> \n $white"
-                git clone "$AnyKernel" --single-branch -b "$AnyKernelbranch" zip
-                echo -e "$yellow << making kernel zip >> \n $white"
-                cp -r "$IMG" zip/
-                cd zip
-                mv Image.gz-dtb zImage
-                export ZIP="$KERNEL_NAME"-"$CODENAME"-"$DATE"
-                zip -r "$ZIP" *
-                curl -sLo zipsigner-3.0.jar https://raw.githubusercontent.com/Hunter-commits/AnyKernel/master/zipsigner-3.0.jar
-                java -jar zipsigner-3.0.jar "$ZIP".zip "$ZIP"-signed.zip		
-                tg_post_build "$ZIP"-signed.zip "$CHATID"
-                cd ..
-                rm -rf error.log
-                rm -rf out
-                rm -rf zip
-                rm -rf testing.log
-                exit
-        fi
-    
+make -j$(nproc --all) CC=clang \
+                      LD=ld.lld \
+                      LLVM=1 \
+                      LLVM_IAS=1 \
+                      $KERNEL_DEFCONFIG
+ 
+make -j$(nproc --all) CC=clang \
+                      LD=ld.lld \
+                      LLVM=1 \
+                      LLVM_IAS=1
