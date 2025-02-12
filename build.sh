@@ -127,9 +127,19 @@ if [ "$TOOLCHAIN" == clang  ]; then
 	echo clang
 	make -j$(nproc --all) O=out \
         ARCH=arm64 \
+        LLVM=1 \
+        LLVM_IAS=0 \
         AR=llvm-ar \
         NM=llvm-nm \
         LD=ld.lld \
+        OBJCOPY=llvm-objcopy \
+        OBJDUMP=llvm-objdump \
+        STRIP=llvm-strip \
+        READELF=llvm-readelf \
+        HOSTCC=clang \
+        HOSTCXX=clang++ \
+        HOSTAR=llvm-ar \
+        HOSTLD=ld.lld \
         CC="ccache clang" \
 	                      CLANG_TRIPLE=aarch64-linux-gnu- \
 		              CROSS_COMPILE=aarch64-linux-gnu- \
