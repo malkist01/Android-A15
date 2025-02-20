@@ -1,0 +1,63 @@
+#!/bin/bash
+#
+# Compile script for QuicksilveR kernel
+# Copyright (C) 2020-2021 Adithya R.
+
+SECONDS=0 # builtin bash timer
+TC_DIR="$HOME/tc/clang-r450784d"
+AK3_DIR="$HOME/AnyKernel"
+DEFCONFIG="teletubies_defconfig"
+
+ZIPNAME="Teletubies-lisa-$(date '+%Y%m%d-%H%M').zip"
+
+if test -z "$(git rev-parse --show-cdup 2>/dev/null)" &&
+   head=$(git rev-parse --verify HEAD 2>/dev/null); then
+	ZIPNAME="${ZIPNAME::-4}-$(echo $head | cut -c1-8).zip"
+fi
+
+MAKE_PARAMS="O=out ARCH=arm64 CC=clang CLANG_TRIPLE=aarch64-linux-gnu- LLVM=1 LLVM_IAS=1 \
+	CROSS_COMPILE=$TC_DIR/bin/llvm-"
+
+export PATH="$TC_DIR/bin:$PATH"
+
+if [[ $1 = "-r" || $1 = "--regen" ]]; then
+	make $MAKE_PARAMS $DEFCONFIG savedefconfig
+	cp out/defconfig arch/arm64/configs/$DEFCONFIG
+	echo -e "\nSuccessfully regenerated defconfig at $DEFCONFIG"
+	exit
+fi
+
+if [[ $1 = "-c" || $1 = "--clean" ]]; then
+	rm -rf out
+	echo "Cleaned output folder"
+fi
+
+mkdir -p out
+make $MAKE_PARAMS $DEFCONFIG
+
+echo -e "\nStarting compilation...\n"
+make -j$(nproc --all) $MAKE_PARAMS || exit $?
+make -j$(nproc --all) $MAKE_PARAMS INSTALL_MOD_PATH=modules INSTALL_MOD_STRIP=1 modules_install
+
+kernel="out/arch/arm64/boot/Image.gz-dtb"
+
+if [ ! -f "$kernel" ] || [ ! -f "$dtb" ] || [ ! -f "$dtbo" ]; then
+	echo -e "\nCompilation failed!"
+	exit 1
+fi
+
+echo -e "\nKernel compiled succesfully! Zipping up...\n"
+if [ -d "$AK3_DIR" ]; then
+	cp -r $AK3_DIR AnyKernel
+	git -C AnyKernel checkout master &> /dev/null
+elif ! git clone -q https://github.com/malkist01/anykernel.git -b master; then
+	echo -e "\nAnyKernel repo not found locally and couldn't clone from GitHub! Aborting..."
+	exit 1
+fi
+cp $kernel AnyKernel
+cd AnyKernel
+zip -r9 "../$ZIPNAME" * -x .git README.md *placeholder
+cd ..
+rm -rf AnyKernel
+echo -e "\nCompleted in $((SECONDS / 60)) minute(s) and $((SECONDS % 60)) second(s) !"
+echo "Zip: $ZIPNAME"
