@@ -30,8 +30,6 @@ jobs:
         
     - name: Integrate KernelSU
       run: |
-        cd $GITHUB_WORKSPACE/kernel_workspace
-        rm -rf KernelSU/
         curl -LSs "https://raw.githubusercontent.com/tiann/KernelSU/main/kernel/setup.sh" | bash -s v0.9.5
         
     - name: Compiling Kernel
