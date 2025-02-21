@@ -4,9 +4,14 @@ on:
 env:
   TZ: Asia/Jakarta
 jobs:
-  kernel-build:
+  teletubiesbuild:
     runs-on: ubuntu-22.04
-    steps:
-      - name: Initializing environment
-        run: |    
-            bash build-kernel.sh
+  steps:
+    - name: Creating Env!
+      uses: actions/checkout@v2
+      
+    - name: Setting up Env!
+       run: |
+           chmod +x build-kernel.sh
+           ./build-kernel.sh
+      shell: bash
