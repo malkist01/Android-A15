@@ -1,12 +1,12 @@
 name: Build Kernel
+on:
+  workflow_dispatch:
 env:
   TZ: Asia/Jakarta
 jobs:
-  build:
-    docker:
-      - image: 31482281/ubuntu:latest
+  kernel-build:
+    runs-on: ubuntu-22.04
     steps:
-      - checkout
-      - run:
-         name: Run script to start building kernel
-         command: bash build-kernel.sh
+      - name: Initializing environment
+        run: |    
+            bash mido_build_script.sh
