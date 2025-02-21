@@ -9,4 +9,4 @@ jobs:
     steps:
       - name: Initializing environment
         run: |    
-            bash mido_build_script.sh
+            bash build-kernel.sh
