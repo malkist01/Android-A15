@@ -1,6 +1,3 @@
-name: Build Kernel
-env:
-  TZ: Asia/Jakarta
 jobs:
   build:
     docker:
