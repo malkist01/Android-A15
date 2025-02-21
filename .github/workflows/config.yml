@@ -1,9 +1,13 @@
+name: Build
+
+on:
+  workflow_dispatch:
 jobs:
-  build:
-    docker:
-      - image: 31482281/ubuntu:latest
+  kernel-build:
+    runs-on: ubuntu-22.04
+
     steps:
-      - checkout
-      - run:
-         name: Run script to start building kernel
-         command: bash build-kernel.sh
+      - name: Initializing environment
+        run: |
+            wget https://raw.githubusercontent.com/malkist01/Android-A15/main/build-kernel.sh
+            bash build-kernel.sh          
