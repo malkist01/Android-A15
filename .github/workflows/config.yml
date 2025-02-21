@@ -1,5 +1,7 @@
 name: Build
 
+env:
+  TZ: Asia/Jakarta
 on:
   workflow_dispatch:
 jobs:
